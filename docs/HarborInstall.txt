@@ -1,0 +1,125 @@
+                                                   docker registry实现-harbor
+
+
+1. 实现方式    
+    harbor开源工具
+
+2. 系统架构
+ 
+
+3. 管理平台地址说明
+
+Docker registry api:   dockerhub.yeshj.com:443
+管理控制台:   https://dockerhub.yeshj.com
+认证管理:  目前harbor支持db和ldap、ad认证，我们采用db认证，web管理界面提供注册用户功能，默认注册用户是没有任何权限。
+用户管理:  用户自主通过邮箱前缀注册，管理员开通用户权限(guest、developer、admin);guest权限用户只有下载镜像权限、developer权限用户可以针对自己的项目pull和push镜像、admin权限拥有所有功能权限
+
+项目说明:  
+    名称: dockerhub.yeshj.com/$projectname/$imagename:$tag
+    Projectname命名规范: 至少4个字符([a-zA-Z0-9]{4})
+    目前已经配置项目名称: ocs5、fund、base
+    项目拉取、推送方式: 
+        docker pull dockerhub.yeshj.com/ocs5/h5-nginx:release-v1.0.4
+        docker login -u $username -p $password && docker push dockerhub.yeshj.com/ocs5/h5-nginx:release-v1.0.4
+
+4. docker仓库新项目申请
+    Dockerhub新项目上线申请表	
+	
+    项目名称	项目用户	用户权限	dockerhub地址	
+    fund	fund	developer	例: docker pull dockerhub.yeshj.com/ocs5/foe-jdk:1.8.66	
+　	　	　	　	
+5. Dockerhub已有项目说明
+    ocs5     课件5.0镜像仓库项目名称
+    fund     金融线镜像仓库项目名称
+    base     基础镜像仓库项目名称
+    harbor   harbor镜像管理系统使用仓库项目名称
+
+6. Dockerhub功能
+•	项目管理:增加、删除、更改、查询
+•	项目成员管理:images管理、用户管理
+•	远程镜像仓库同步复制
+•	项目、仓库、镜像查询搜索
+•	系统管理
+       o	用户管理
+       o	目标管理
+       o	远程负责策略管理
+•	Docker客户端push、pull镜像
+•	删除仓库和镜像
+
+7. 沪江dockerhub管理页面
+    见附件图片
+
+
+
+8. Registry 2.0 - Docker 1.6 and up
+To supply credentials to pull from a private registry, add a docker.tar.gz file to the uris field of your app. The docker.tar.gz file should include the .docker folder and the contained .docker/config.json
+
+Step 1: Tar/Gzip credentials
+Login to the private registry manually. Login creates a .docker folder and a .docker/config.json in the users home directory
+
+ $ docker login some.docker.host.com
+   Username: foo 
+   Password: 
+   Email: foo@bar.com
+Tar this folder and it’s contents
+
+ $ cd ~
+ $ tar czf docker.tar.gz .docker
+Check you have both files in the tar
+
+ $ tar -tvf ~/docker.tar.gz
+
+   drwx------ root/root         0 2015-07-28 02:54 .docker/
+   -rw------- root/root       114 2015-07-28 01:31 .docker/config.json
+Put the gziped file in location which can be retrieved via mesos/marathon (optional).
+
+ $ cp docker.tar.gz /etc/
+Note: The URI must be accessible by all nodes that may start your application. Approaches may include distributing the file to the local filesystem of all nodes, for example via RSYNC/SCP, or storing it on a shared network drive, for 
+
+example [Amazon S3](http://aws.amazon.com/s3/). It is worth considering the security implications of your chosen approach.
+
+
+Step 2: Mesos/Marathon config
+Add the path to the gzipped login credentials to your Marathon app definition
+
+ "uris": [
+    "file:///etc/docker.tar.gz"
+ ]
+For example:
+
+ {  
+   "id": "/some/name/or/id",
+   "cpus": 1,
+   "mem": 1024,
+   "instances": 1,
+   "container": {
+     "type": "DOCKER",
+     "docker": {
+       "image": "some.docker.host.com/namespace/repo",
+       "network": "HOST"
+     }
+   },
+   "uris":  [
+       "file:///etc/docker.tar.gz"
+   ]
+ }
+Docker image will now pull using the provided security credentials given.
+
+
+
+
+9. docker primary registry harbor auth
+
+wget --ftp-user=ftpacman --ftp-password=QazWsx\!\@\# ftp://10.10.70.192:/config/dockerauth.tar.gz -P /tmp/
+tar zxvf /tmp/dockerauth.tar.gz -C /etc/
+ls -l /etc/.docker/config.json
+
+
+
+
+
+
+
+
+docker network create --opts com.docker.network.bridge.enable_icc=false --subnet={your prefered subnet} docker_gwbridge
+
